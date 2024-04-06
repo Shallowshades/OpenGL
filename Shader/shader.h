@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <thread>
 
 class Shader
 {
@@ -93,6 +94,9 @@ public:
 	{
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	}
+    void setFloat2(const std::string& name, float val1, float val2) {
+        glUniform2f(glGetUniformLocation(ID, name.c_str()), val1, val2);
+    }
     // ------------------------------------------------------------------------
     ~Shader()
     {
