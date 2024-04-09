@@ -210,8 +210,11 @@ int main()
 
         // Transfrom
         glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-        trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+        // 矩阵乘法不支持交换律,
+        // 先移位, 再旋转,则为在右下角,以图片中心旋转
+        // 先旋转, 再移位,则图片在中心,且以图片的左上角为基点旋转
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f)); // 位移
+        trans = glm::rotate(trans, float(glfwGetTime()), glm::vec3(0.0, 0.0, 1.0)); //旋转
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 
         // render container
