@@ -98,10 +98,10 @@ int main()
 	// ------------------------------------------------------------------
     float vertices[] = {
         // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f, // bottom right
         -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f  // top left 
     };
     unsigned int indices[] = {
         0, 1, 3, // first triangle
@@ -137,8 +137,8 @@ int main()
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -256,44 +256,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
-}
-
-bool create_shader(unsigned int shader, unsigned int type, const char* source) {
-	static int success;
-	static char info[512];
-
-	// 创建,绑定,编译着色器
-	shader = glCreateShader(type);
-	glShaderSource(shader, 1, &source, nullptr);
-	glCompileShader(shader);
-
-	// 检测着色器是否编译成功
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, nullptr, info);
-		std::cout << "ERROR::SHADER::COMPILATION_FAIL\n" << info << std::endl;
-		return false;
-	}
-    return true;
-}
-
-bool create_shader_program(unsigned int program, const std::vector<unsigned int>& shaders) {
-	static int success;
-	static char info[512];
-
-	// 创建着色器程序, 将着色器附加到程序上,链接
-	program = glCreateProgram();
-	for (auto& shader : shaders)
-		glAttachShader(program, shader);
-	glLinkProgram(program);
-
-
-	// 检测着色器程序是否编译成功
-	glGetShaderiv(program, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(program, 512, nullptr, info);
-		std::cout << "ERROR::PROGRAM::LINK_FAIL\n" << info << std::endl;
-		return false;
-	}
-    return true;
 }
