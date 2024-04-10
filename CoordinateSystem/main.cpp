@@ -194,6 +194,8 @@ int main()
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
 
+    glEnable(GL_DEPTH_TEST);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -232,7 +234,7 @@ int main()
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
             shader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
