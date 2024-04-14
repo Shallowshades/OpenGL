@@ -26,9 +26,20 @@ const char* FRAGMENT_SOURCE_PATH = "./fragment.fs";
 const char* IMAGE_WALL_PATH = "./wall.jpg";
 const char* IMAGE_SMILE_PATH = "./awesomeface.png";
 const char* IMAGE_CONTAINER_PATH = "./container.jpg";
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+std::ostream& operator << (std::ostream& os, const glm::vec3& pos) {
+    return os << "(" << pos.x << ", " << pos.y << ", " << pos.z << ")";
+}
 
 int main()
 {
+    // calc
+    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+    std::cout << cameraRight << std::endl;
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -224,16 +235,7 @@ int main()
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         // camera
-        float radius = 10.0f;
-        float cameraX = static_cast<float>(sin(glfwGetTime()) * radius);
-        float cameraY = static_cast<float>(cos(glfwGetTime()) * radius);
-        glm::vec3 cameraPos = glm::vec3(cameraX, 0.0f, cameraY);
-        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-        //glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-        //glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-        //glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-        glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, up);
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         // pass transformation matrices to the shader
         shader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
@@ -280,6 +282,16 @@ void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
