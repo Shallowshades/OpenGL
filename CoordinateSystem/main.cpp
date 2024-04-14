@@ -114,20 +114,7 @@ int main()
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    glm::vec3 cubePositions[] = {
-       glm::vec3(0.0f,  0.0f,  0.0f),
-       glm::vec3(2.0f,  5.0f, -15.0f),
-       glm::vec3(-1.5f, -2.2f, -2.5f),
-       glm::vec3(-3.8f, -2.0f, -12.3f),
-       glm::vec3(2.4f, -0.4f, -3.5f),
-       glm::vec3(-1.7f,  3.0f, -7.5f),
-       glm::vec3(1.3f, -2.0f, -2.5f),
-       glm::vec3(1.5f,  2.0f, -2.5f),
-       glm::vec3(1.5f,  0.2f, -1.5f),
-       glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
-
-    unsigned int VBO, VAO, EBO;
+    unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
@@ -157,7 +144,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); //y轴反转
+    //stbi_set_flip_vertically_on_load(true); //y轴反转
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
     unsigned char* data = stbi_load(IMAGE_CONTAINER_PATH, &width, &height, &nrChannels, 0);
     if (data)
@@ -176,8 +163,8 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
     data = stbi_load(IMAGE_SMILE_PATH, &width, &height, &nrChannels, 0);
@@ -197,6 +184,8 @@ int main()
     shader.setInt("texture2", 1);
 
     glEnable(GL_DEPTH_TEST);
+
+    float angle = 0.0f;
 
     // render loop
     // -----------
@@ -223,31 +212,20 @@ int main()
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        model = glm::rotate(model, 0.0f, glm::vec3(0.5f, 1.0f, 0.0f));
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        angle += 0.001;
+        //view = glm::rotate(view, (float)(sin(glfwGetTime()) * 0.5 + 45.0), glm::vec3(1.f, 1.f, 1.f));
+        view = glm::rotate(view, angle, glm::vec3(1.f, 1.f, -1.f));
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        // retrieve the matrix uniform locations
-        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
-        unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
-        // pass them to the shaders (3 different ways)
-        shader.setMat4("model", model);
-        shader.setMat4("view", view);
         // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
         shader.setMat4("projection", projection);
+        shader.setMat4("model", model);
+        shader.setMat4("view", view);
 
-        // render container
+        // render box
         glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
-            shader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
