@@ -17,6 +17,7 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xPos, double yPos);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -31,6 +32,11 @@ glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float deltaTime = 0.0f;     // 当前帧和上一帧的时间差
 float lastFrame = 0.0f;    // 上一帧的时间
+bool firstMouse = true;
+double lastX = SCR_WIDTH / 2.0;
+double lastY = SCR_HEIGHT / 2.0;
+float pitch = 0.0f;
+float yaw = 0.0f;
 
 std::ostream& operator << (std::ostream& os, const glm::vec3& pos) {
     return os << "(" << pos.x << ", " << pos.y << ", " << pos.z << ")";
@@ -209,8 +215,9 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    float angle = 0.0f;
-
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPos(window, lastX, lastY);
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -299,6 +306,33 @@ void processInput(GLFWwindow* window)
         cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+}
+
+void mouse_callback(GLFWwindow* window, double xPos, double yPos) {
+    if (firstMouse) 
+        lastX = xPos, lastY = yPos, firstMouse = false;
+    
+    float xOffset = xPos - lastX;
+    float yOffset = lastY - yPos; // 底部向上增大
+    lastX = xPos, lastY = yPos;
+
+    float sensitivity = 0.075;
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    yaw += xOffset;
+    pitch += yOffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
