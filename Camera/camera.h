@@ -76,6 +76,8 @@ public:
             Position -= Right * velocity;
         if (direction == RIGHT)
             Position += Right * velocity;
+
+        Position.y = 0.0f; //FPS 相机, 保持Z轴不变
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
