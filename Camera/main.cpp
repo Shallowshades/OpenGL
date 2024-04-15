@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include "shader.h"
+#include "camera.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -29,28 +30,22 @@ const char* FRAGMENT_SOURCE_PATH = "./fragment.fs";
 const char* IMAGE_WALL_PATH = "./wall.jpg";
 const char* IMAGE_SMILE_PATH = "./awesomeface.png";
 const char* IMAGE_CONTAINER_PATH = "./container.jpg";
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float deltaTime = 0.0f;     // 当前帧和上一帧的时间差
-float lastFrame = 0.0f;    // 上一帧的时间
+
+//camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-double lastX = SCR_WIDTH / 2.0;
-double lastY = SCR_HEIGHT / 2.0;
-float pitch = 0.0f;
-float yaw = -90.0f;
-float fov = 45.0f;
+
+//timing
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 std::ostream& operator << (std::ostream& os, const glm::vec3& pos) {
     return os << "(" << pos.x << ", " << pos.y << ", " << pos.z << ")";
 }
 
-int main()
-{
-    // calc
-    glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
-    std::cout << cameraRight << std::endl;
-
+int main() {
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -73,6 +68,12 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // tell GLFW to capture mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(window, lastX, lastY);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -81,12 +82,6 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
-    // cursor, mouse, scroll settings
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetCursorPos(window, lastX, lastY);
-    glfwSetScrollCallback(window, scroll_callback);
 
     // build and compile our shader program
     // ------------------------------------
@@ -250,11 +245,8 @@ int main()
         shader.use();
 
         // create transformations
-        glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-        // camera
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
 
         // pass transformation matrices to the shader
         shader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
@@ -302,15 +294,14 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float cameraSpeed = 2.5f * deltaTime;   // 防止不同机器的相机移动速度不同
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+        camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void mouse_callback(GLFWwindow* window, double xPos, double yPos) {
@@ -321,29 +312,11 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos) {
     float yOffset = lastY - yPos; // 底部向上增大
     lastX = xPos, lastY = yPos;
 
-    float sensitivity = 0.075;
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
+    camera.ProcessMouseMovement(xOffset, yOffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xOffset, double yOffset) {
-    if (fov >= 1.0f && fov <= 45.0) 
-        fov -= yOffset;
-    fov = glm::clamp(fov, 1.0f, 45.0f);
+    camera.ProcessMouseScroll(static_cast<float>(yOffset));
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

@@ -134,10 +134,12 @@
   <ItemGroup>
     <ClCompile Include="..\Dependencies\glad.c" />
     <ClCompile Include="..\Dependencies\stb_image.cpp" />
+    <ClCompile Include="camera.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dependencies\stb_image.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
