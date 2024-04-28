@@ -171,7 +171,7 @@ int main() {
         // be sure to activate shader when setting uniform/drawing objects
         lightingShader.use();
         lightingShader.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        lightingShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        //lightingShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
         lightingShader.setVec3("lightPos", lightPos);
         lightingShader.setVec3("viewPos", camera.Position);
 
@@ -192,6 +192,13 @@ int main() {
             lightingShader.setVec3("material.diffuse", 0.75164f, 0.60648f, 0.22648f);
             lightingShader.setVec3("material.specular", 0.628281f, 0.522802f, 0.366065f);
             lightingShader.setFloat("material.shininess", 0.4f);
+        }
+
+        // set lighting
+        {
+            lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+            lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
+            lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
         }
 
         // render the cube
