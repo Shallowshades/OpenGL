@@ -1,6 +1,8 @@
 ﻿//////////////////////////////////////////////////////////////////////////
 // OpenGL基础学习
 // Basic lighting
+// 在顶点着色器中实现的冯氏光照模型叫做Gouraud着色(Gouraud Shading)，而不是冯氏着色(Phong Shading)。
+// 由于插值，这种光照看起来有点逊色。冯氏着色能产生更平滑的光照效果。
 //////////////////////////////////////////////////////////////////////////
 
 #include <glad/glad.h>
@@ -173,6 +175,7 @@ int main() {
         lightingShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
         lightingShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
         lightingShader.setVec3("lightPos", lightPos);
+        lightingShader.setVec3("viewPos", camera.Position);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
