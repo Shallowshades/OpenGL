@@ -175,6 +175,23 @@ int main() {
         lightingShader.setVec3("lightPos", lightPos);
         lightingShader.setVec3("viewPos", camera.Position);
 
+        // light properties
+        glm::vec3 lightColor;
+        lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));
+        lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));
+        lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+        lightingShader.setVec3("light.ambient", ambientColor);
+        lightingShader.setVec3("light.diffuse", diffuseColor);
+        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+        // material properties
+        lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+        lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
+        lightingShader.setFloat("material.shininess", 32.0f);
+
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -184,22 +201,6 @@ int main() {
         // world transformation
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
-
-        // set material
-        // gold
-        {
-            lightingShader.setVec3("material.ambient", 0.24725f, 0.1995f, 0.0745f);
-            lightingShader.setVec3("material.diffuse", 0.75164f, 0.60648f, 0.22648f);
-            lightingShader.setVec3("material.specular", 0.628281f, 0.522802f, 0.366065f);
-            lightingShader.setFloat("material.shininess", 0.4f);
-        }
-
-        // set lighting
-        {
-            lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-            lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
-            lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        }
 
         // render the cube
         glBindVertexArray(cubeVAO);
